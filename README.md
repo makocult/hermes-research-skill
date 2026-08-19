@@ -1,35 +1,57 @@
 # Hermes Research Skill
 
-A lightweight, evidence-first `/research` skill for Hermes Agent.
+[![Hermes Agent](https://img.shields.io/badge/Hermes-Agent-111111)](https://hermes-agent.nousresearch.com/)
+[![Skill Version](https://img.shields.io/badge/skill-v2.0.0-blue)](./SKILL.md)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](./LICENSE)
 
-It is designed for **ordinary investigation**, not heavyweight deep research: establish the current facts, cover the important dimensions, reconcile conflicting evidence, reconstruct the logic, and give one practical recommendation.
+A lightweight, evidence-first `/research` skill for **Hermes Agent**.
 
-## What it does
+It is designed for **ordinary investigation rather than heavyweight deep research**: establish the current facts, cover the important dimensions, reconcile conflicting evidence, reconstruct the logic, and recommend one practical next action.
 
-The skill follows a compact research workflow:
+> **Use it when you need something checked properly before acting, but you do not need a 20-source research report.**
+
+## Why this skill exists
+
+A normal web search can find information, but it does not guarantee that the investigation covered the right dimensions or that the final conclusion follows from the evidence.
+
+This skill adds a repeatable research method around Hermes' existing tools:
 
 **Scope & coverage frame → date/version grounding → source strategy → adaptive 1–3 round research → counter-evidence → evidence discipline → logic reconstruction → solution feasibility check → concise recommendation**
 
-Key behaviors:
+The emphasis is on **coverage and judgment**, not maximum depth.
 
-- defines the important investigation dimensions before searching
-- prioritizes primary sources such as official docs, source code, releases, issues, PRs, commits, papers, model cards, and first-party statements
-- reads important sources in full instead of relying on search snippets
-- actively searches for evidence that could weaken the leading explanation
-- distinguishes verified facts, single-source facts, inference, and unknowns
-- checks version, platform, configuration, and historical differences before treating sources as contradictory
-- stops when additional research is unlikely to change the recommendation
-- recommends one practical path by default instead of dumping equal-weight options
+## Key behaviors
+
+- Defines the important investigation dimensions **before** searching.
+- Prioritizes primary evidence: official docs, source code, releases, issues, PRs, commits, papers, model cards, pricing/policy/status pages, and first-party statements.
+- Reads important sources in full instead of reasoning from search snippets alone.
+- Checks the actual current date, version, branch, platform, configuration, and feature context when they matter.
+- Actively searches for evidence that could weaken or contradict the leading explanation.
+- Distinguishes **verified facts, sourced facts, inference, and unknowns**.
+- Treats multiple articles repeating one original source as one evidence cluster, not independent confirmation.
+- Separates intended design, documented behavior, actual implementation, regressions, configuration issues, documentation drift, and UI ambiguity when relevant.
+- Stops when further research is unlikely to change the recommendation.
+- Recommends **one practical path by default** rather than dumping equal-weight options.
 
 ## Install
 
-Place `SKILL.md` in your Hermes skills directory as:
+Hermes supports installing a single-file skill directly from an HTTP(S) `SKILL.md` URL.
 
-```text
-~/.hermes/skills/research/SKILL.md
+```bash
+hermes skills install https://raw.githubusercontent.com/makocult/hermes-research-skill/main/SKILL.md
 ```
 
-Once loaded by Hermes, use it as:
+Or install it manually:
+
+```bash
+mkdir -p ~/.hermes/skills/research
+curl -L https://raw.githubusercontent.com/makocult/hermes-research-skill/main/SKILL.md \
+  -o ~/.hermes/skills/research/SKILL.md
+```
+
+Installed skills become slash commands in Hermes. Start a new session after installing, or refresh the current session according to your Hermes version.
+
+## Usage
 
 ```text
 /research <your question>
@@ -38,35 +60,85 @@ Once loaded by Hermes, use it as:
 Example:
 
 ```text
-/research Investigate why Hermes Desktop Remote Gateway depends on Profile, verify the current implementation and relevant issues/PRs, then recommend the most practical improvement.
+/research Investigate why Hermes Desktop Remote Gateway depends on Profile. Verify the current documented behavior, implementation, relevant issues/PRs, and version history, then recommend the most practical improvement.
 ```
 
-## Design goal
+Another example:
 
-This project intentionally sits between a one-shot web lookup and a full multi-agent deep-research system.
+```text
+/research Compare the current Q4_K_M and Q4_K_XL quantizations for this model. Prioritize primary benchmark evidence and implementation details, identify conflicting claims, and recommend which one I should deploy.
+```
 
-The target use case is:
+## What the final answer should look like
 
-> “I need this checked properly before I act, but I do not need a 20-source research report.”
+The skill favors a compact, decision-oriented result:
+
+1. **Conclusion** — the answer first.
+2. **What is established** — the facts that materially support it.
+3. **How it fits together** — mechanism, timeline, dependency, or contradiction.
+4. **Recommended action** — one practical next step.
+5. **Remaining uncertainty** — only when something unresolved could matter.
+
+It intentionally avoids arbitrary minimum word counts, giant bibliographies, visible research statistics, and report-length output unless the problem genuinely requires them.
+
+## Research depth
+
+The workflow is adaptive:
+
+- **Quick** — 1 round for narrow questions with a clear source trail.
+- **Normal** — up to 2 rounds for most investigations.
+- **Extended** — up to 3 rounds only when a material contradiction, version mismatch, or missing causal link could change the recommendation.
+
+These are ceilings, not targets.
+
+## What this is not
+
+This is not intended to replace:
+
+- exhaustive academic literature review
+- large-scale due diligence
+- multi-agent deep research
+- recurring monitoring
+- implementation work after the facts and plan are already established
+
+For those tasks, use a more specialized workflow.
 
 ## Design provenance
 
-The workflow was built by reviewing and selectively combining ideas from several existing research-skill projects, including:
+This skill was built by reviewing and selectively combining ideas from several existing research-skill projects rather than inventing the workflow from scratch.
 
-- moonlight-lupin / `agent-skills` — adaptive rounds, counter-evidence search, evidence states, stop conditions
-- ByteDance / `deer-flow` — broad exploration, dimension discovery, full-source reading, gap checks
-- Weizhena / `Deep-Research-skills` — research outline / fields before collection
-- 199-biotechnologies / `claude-deep-research-skill` — claim-level verification and source-cluster independence
-- witt3rd / `oh-my-hermes` — decomposition, synthesis, verification, selective delegation
-- NousResearch / Hermes Agent `parallel-cli` — keep Hermes-native web tools as the default for ordinary research
+Influences include:
 
-See [`DESIGN_NOTES.md`](./DESIGN_NOTES.md) for the detailed design provenance and the parts that were deliberately not adopted.
+- **moonlight-lupin / agent-skills** — adaptive rounds, counter-evidence search, evidence states, empty-search handling, stop conditions
+- **ByteDance / DeerFlow** — broad exploration, dimension discovery, full-source reading, gap checks
+- **Weizhena / Deep-Research-skills** — research outline and fields before information collection
+- **199-biotechnologies / claude-deep-research-skill** — claim-level verification and source-cluster independence
+- **witt3rd / oh-my-hermes** — decomposition, synthesis, verification, selective delegation
+- **NousResearch / Hermes Agent parallel-cli** — keep Hermes-native web tools as the default for ordinary research
 
-## Files
+See [`DESIGN_NOTES.md`](./DESIGN_NOTES.md) for the detailed provenance, what was retained, and what was deliberately left out.
 
-- `SKILL.md` — the runtime Hermes skill
-- `DESIGN_NOTES.md` — design provenance and rationale
-- `LICENSE` — MIT License
+## Repository structure
+
+```text
+.
+├── SKILL.md          # Runtime Hermes skill
+├── DESIGN_NOTES.md   # Design provenance and rationale
+├── README.md
+└── LICENSE            # MIT
+```
+
+## Contributing
+
+Issues and pull requests are welcome, especially for:
+
+- research-process edge cases
+- examples where the workflow stops too early or too late
+- source-evaluation failures
+- Hermes compatibility changes
+- improvements backed by real-world research workflows
+
+The guiding principle is simple: **improve research completeness and judgment without turning ordinary research into an expensive deep-research pipeline.**
 
 ## License
 
